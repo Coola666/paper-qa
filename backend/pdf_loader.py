@@ -1,17 +1,15 @@
 import fitz  # PyMuPDF
 
 
-def extract_pages_from_pdf(pdf_path):
-    doc = fitz.open(pdf_path)
+def load_pdf(file_path):
+    doc = fitz.open(file_path)
 
     pages = []
 
     for i, page in enumerate(doc):
-        text = page.get_text()
-
         pages.append({
             "page": i + 1,
-            "content": text   # ⭐ 统一字段
+            "text": page.get_text()
         })
 
     return pages

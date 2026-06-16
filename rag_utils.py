@@ -1,77 +1,74 @@
-import re
-import math
-from collections import Counter
+import numpy as np
+from sklearn.feature_extraction.text import TfidfVectorizer
 
 
-def split_pages_into_chunks(pages):
+# =========================
+# Step 1: Split into chunks
+# =========================
+def split_pages_into_chunks(pages, chunk_size=500):
     chunks = []
+
     chunk_id = 0
 
     for page in pages:
-        text = page["text"]
+        text = page["content"]
         page_num = page["page"]
 
-        split = text.split("\n")
+        words = text.split()
 
-        for s in split:
-            if len(s.strip()) < 10:
-                continue
+        for i in range(0, len(words), chunk_size):
+            chunk_text = " ".join(words[i:i + chunk_size])
 
             chunks.append({
-                "chunk_id": chunk_id,
+                "content": chunk_text,
                 "page": page_num,
-                "content": s.strip()
+                "chunk_id": chunk_id
             })
+
             chunk_id += 1
 
     return chunks
 
 
-def tokenize(text):
-    return re.findall(r"\w+", text.lower())
+# =========================
+# Step 2: Build Vector Store
+# =========================
+class VectorStore:
+    def __init__(self):
+        self.vectorizer = TfidfVectorizer()
+        self.matrix = None
+        self.chunks = []
+
+    def build(self, chunks):
+        self.chunks = chunks
+        texts = [c["content"] for c in chunks]
+        self.matrix = self.vectorizer.fit_transform(texts)
+
+    def search(self, query, k=3):
+        q_vec = self.vectorizer.transform([query])
+        scores = np.dot(self.matrix, q_vec.T).toarray().flatten()
+
+        top_k = np.argsort(scores)[-k:][::-1]
+
+        results = []
+        for i in top_k:
+            c = self.chunks[i]
+
+            results.append({
+                "content": c["content"],
+                "page": c["page"],
+                "chunk_id": c["chunk_id"],
+                "score": float(scores[i])
+            })
+
+        return results
 
 
 def build_vector_store(chunks):
-    docs_tokens = []
-    df = Counter()
-
-    for c in chunks:
-        tokens = set(tokenize(c["content"]))
-        docs_tokens.append(tokens)
-
-        for t in tokens:
-            df[t] += 1
-
-    return {
-        "chunks": chunks,
-        "tokens": docs_tokens,
-        "df": df,
-        "n": len(chunks)
-    }
+    store = VectorStore()
+    store.build(chunks)
+    return store
 
 
-def score(query_tokens, doc_tokens, df, n):
-    score = 0
-    for t in query_tokens:
-        if t in doc_tokens:
-            score += math.log((n + 1) / (df[t] + 1))
-    return score
-
-
-def retrieve_relevant_chunks(store, query, k=3):
-    q_tokens = set(tokenize(query))
-    results = []
-
-    for i, doc_tokens in enumerate(store["tokens"]):
-        c = store["chunks"][i]
-
-        s = score(q_tokens, doc_tokens, store["df"], store["n"])
-
-        results.append({
-            "chunk_id": c["chunk_id"],
-            "page": c["page"],
-            "content": c["content"],
-            "score": s
-        })
-
-    return sorted(results, key=lambda x: x["score"], reverse=True)[:k]
+def retrieve_relevant_chunks(vector_store, query, k=3):
+    return vector_store.search(query, k)
