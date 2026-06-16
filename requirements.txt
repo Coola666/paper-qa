@@ -1,9 +1,42 @@
+# =========================
+# Frontend
+# =========================
 streamlit
+
+# =========================
+# Backend
+# =========================
+fastapi
+uvicorn
+python-multipart
+pydantic
+
+# =========================
+# LLM
+# =========================
 openai
+python-dotenv
+
+# =========================
+# Data Processing
+# =========================
 pandas
 numpy
+
+# =========================
+# Visualization
+# =========================
 matplotlib
+
+# =========================
+# PDF Processing
+# =========================
 pdfplumber
 PyMuPDF
+
+# =========================
+# RAG / ML
+# =========================
+scikit-learn
 requests
-python-dotenv
+

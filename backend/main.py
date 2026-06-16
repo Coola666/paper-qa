@@ -1,9 +1,9 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
 
-from llm_client import LLMClient
-from rag_engine import RAGEngine
-from utils import DEEPSEEK_API_KEY
+from backend.llm_client import LLMClient
+from backend.rag_engine import RAGEngine
+from backend.utils import DEEPSEEK_API_KEY
 
 app = FastAPI()
 
