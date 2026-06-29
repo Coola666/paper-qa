@@ -16,7 +16,7 @@ from report_utils import extract_sections_from_llm, generate_markdown_report
 FASTAPI_URL = "https://paper-qa-production.up.railway.app"
 
 st.set_page_config(layout="wide")
-st.title("📄 Research Paper AI Agent (FastAPI Version)")
+st.title("📄 Research Paper AI Agent ")
 
 
 # =========================
